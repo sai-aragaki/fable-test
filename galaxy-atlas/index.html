@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ATLAS COELESTIS — 粒子銀河ノ圖</title>
+<link rel="icon" type="image/png" href="/favicon.png">
+<meta property="og:type"        content="website">
+<meta property="og:url"         content="https://fable-galaxy-atlas.vercel.app">
+<meta property="og:title"       content="ATLAS COELESTIS — 粒子銀河ノ圖">
+<meta property="og:description" content="二萬五千ノ星々、指ニ從ヒテ廻ル。粒子が銀河を描くインタラクティブ天体図鑑。">
+<meta property="og:image"       content="https://fable-galaxy-atlas.vercel.app/ogp.png">
+<meta name="twitter:card"        content="summary_large_image">
+<meta name="twitter:title"       content="ATLAS COELESTIS — 粒子銀河ノ圖">
+<meta name="twitter:description" content="二萬五千ノ星々、指ニ從ヒテ廻ル。粒子が銀河を描くインタラクティブ天体図鑑。">
+<meta name="twitter:image"       content="https://fable-galaxy-atlas.vercel.app/ogp.png">
+<style>
+:root{
+  --paper:#e9dec4; --paper2:#f0e6cf;
+  --ink:#3b2f1f; --faded:#8a7858; --brass:#8a6d3b; --ox:#8b2f1c;
+  --serif:"Bodoni 72","Didot","Georgia","Times New Roman",serif;
+  --mincho:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden;
+  background:radial-gradient(ellipse at 50% 40%, #eee3ca 0%, #e2d4b4 55%, #d2bf95 100%);
+  font-family:var(--serif);
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+canvas{position:fixed;inset:0;display:block;touch-action:none;cursor:none}
+
+#cartouche{position:fixed;top:18px;left:50%;transform:translateX(-50%);
+  width:min(86vw,560px);text-align:center;pointer-events:none;z-index:5;color:var(--ink)}
+#cartouche h1{font-size:clamp(15px,2.6vw,23px);font-weight:600;
+  letter-spacing:.38em;text-indent:.38em;padding-top:9px}
+#cartouche .sub{font-family:var(--mincho);font-size:clamp(8px,1.4vw,10px);
+  letter-spacing:.34em;text-indent:.34em;color:var(--faded);margin-top:4px}
+
+#modus{position:fixed;top:96px;left:34px;z-index:5;pointer-events:none;
+  color:var(--faded);font-size:10px;letter-spacing:.26em;line-height:1.9}
+#modus b{color:var(--ox);font-weight:600}
+#census{position:fixed;top:96px;right:34px;z-index:5;pointer-events:none;text-align:right;
+  color:var(--faded);font-size:10px;letter-spacing:.26em;line-height:1.9}
+
+#hint{position:fixed;left:50%;top:40%;transform:translate(-50%,-50%);z-index:6;
+  text-align:center;color:var(--ink);pointer-events:none;
+  border-top:1px solid rgba(138,109,59,.55);border-bottom:1px solid rgba(138,109,59,.55);
+  padding:20px 34px;transition:opacity .8s ease;max-width:88vw}
+#hint .orn{color:var(--brass);font-size:12px;letter-spacing:.5em;text-indent:.5em;margin-bottom:10px}
+#hint .l1{font-family:var(--mincho);font-size:clamp(13px,2.4vw,17px);
+  letter-spacing:.3em;line-height:2.2}
+#hint .l2{font-size:9px;letter-spacing:.3em;color:var(--faded);margin-top:10px}
+#hint.off{opacity:0}
+
+#legend{position:fixed;left:0;right:0;bottom:0;z-index:10;
+  display:flex;align-items:flex-end;justify-content:center;flex-wrap:wrap;
+  gap:4px 14px;padding:10px 12px 12px;
+  background:rgba(233,222,196,.82);border-top:1px solid rgba(138,109,59,.5)}
+.lg{display:flex;flex-direction:column;align-items:center;gap:3px;
+  background:none;border:none;cursor:pointer;color:var(--ink);
+  font-family:var(--serif);padding:2px 6px 4px;border-bottom:3px double transparent;
+  transition:.18s}
+.lg i{font-style:normal;font-family:var(--mincho);font-size:15px;line-height:1}
+.lg span{font-size:8px;letter-spacing:.24em;text-indent:.24em;color:var(--faded)}
+.lg:hover{color:var(--ox)}
+.lg:hover span{color:var(--ox)}
+.lg.on{color:var(--ox);border-bottom-color:var(--brass)}
+.lg.on span{color:var(--ox)}
+.lgsep{width:1px;height:28px;background:rgba(138,109,59,.4);margin:0 4px;align-self:center}
+
+#seal{position:fixed;right:22px;bottom:74px;width:66px;height:66px;z-index:11;
+  border:2px double var(--ox);border-radius:50%;transform:rotate(-9deg);
+  color:var(--ox);opacity:.55;cursor:pointer;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:1px;transition:.2s;background:none}
+#seal:hover{opacity:.9}
+#seal em{font-style:normal;font-size:10px;letter-spacing:.22em;text-indent:.22em;font-weight:600}
+#seal span{font-size:7px;letter-spacing:.3em;text-indent:.3em}
+
+#toast{position:fixed;left:50%;bottom:78px;transform:translateX(-50%);z-index:9;
+  font-family:var(--mincho);font-style:italic;font-size:12px;letter-spacing:.2em;
+  color:#5a4a33;opacity:0;transition:.4s ease;pointer-events:none;white-space:nowrap}
+#toast.show{opacity:1}
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+
+<div id="cartouche">
+  <h1>ATLAS COELESTIS</h1>
+  <div class="sub">天体圖譜 ─ 粒子銀河ノ圖 ─ TABULA V</div>
+</div>
+<div id="modus">MODUS<br><b id="modev">SPIRALIS · 渦</b></div>
+<div id="census">STELLÆ <span id="cnt">—</span><br><span id="fpsv">—</span> F.P.S.</div>
+
+<div id="hint">
+  <div class="orn">✳ ✳ ✳</div>
+  <div class="l1">指でなぞれば、星々は流れ<br>とんと叩けば、新星が生まれる</div>
+  <div class="l2">DIGITO TRAHE STELLAS — TANGE ET NOVA NASCETUR</div>
+</div>
+
+<div id="legend">
+  <button class="lg on" data-m="spiral"><i>渦</i><span>SPIRALIS</span></button>
+  <button class="lg" data-m="star"><i>星</i><span>STELLA</span></button>
+  <button class="lg" data-m="luna"><i>月</i><span>LUNA</span></button>
+  <button class="lg" data-m="cometa"><i>彗</i><span>COMETA</span></button>
+  <button class="lg" data-m="astra"><i>銘</i><span>ASTRA</span></button>
+  <button class="lg" data-m="free"><i>散</i><span>DISPERSIO</span></button>
+  <i class="lgsep"></i>
+  <button class="lg" id="b-slow"><i>緩</i><span>TARDUS</span></button>
+  <button class="lg on" id="b-snd"><i>音</i><span>SONUS</span></button>
+  <button class="lg" id="b-reset"><i>払</i><span>RESTITUTIO</span></button>
+</div>
+<button id="seal"><em>FABLE</em><span>TAB·V</span></button>
+<div id="toast"></div>
+
+<script>
+"use strict";
+/* ================= helpers ================= */
+const TAU=Math.PI*2;
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const lerp=(a,b,t)=>a+(b-a)*t;
+const rand=(a=1,b)=>b===undefined?Math.random()*a:a+Math.random()*(b-a);
+const $=id=>document.getElementById(id);
+
+/* ================= canvas ================= */
+const cv=$("cv"), ctx=cv.getContext("2d");
+let W=0,H=0,DPR=1,CX=0,CY=0,RMAX=0;
+let bgCv=null,bgCtx=null, trCv=null,trCtx=null;
+function resize(){
+  DPR=Math.min(2,window.devicePixelRatio||1);
+  W=innerWidth; H=innerHeight;
+  cv.width=W*DPR; cv.height=H*DPR;
+  cv.style.width=W+"px"; cv.style.height=H+"px";
+  CX=W/2; CY=H/2+6;
+  RMAX=Math.min(W,H)*.36;
+  trCv=document.createElement("canvas");
+  trCv.width=W; trCv.height=H;
+  trCtx=trCv.getContext("2d");
+  buildBG();
+}
+
+/* ---------- engraved parchment plate (pre-rendered) ---------- */
+function buildBG(){
+  bgCv=document.createElement("canvas");
+  bgCv.width=W*DPR; bgCv.height=H*DPR;
+  bgCtx=bgCv.getContext("2d");
+  const g=bgCtx;
+  g.setTransform(DPR,0,0,DPR,0,0);
+  // parchment
+  const rg=g.createRadialGradient(W*.5,H*.42,0,W*.5,H*.42,Math.max(W,H)*.72);
+  rg.addColorStop(0,"#eee3ca");
+  rg.addColorStop(.6,"#e6d8b9");
+  rg.addColorStop(1,"#d2bf95");
+  g.fillStyle=rg; g.fillRect(0,0,W,H);
+  // stains
+  for(let i=0;i<7;i++){
+    const x=rand(W),y=rand(H),r=rand(40,160);
+    const s=g.createRadialGradient(x,y,0,x,y,r);
+    s.addColorStop(0,`rgba(120,90,40,${rand(.02,.05)})`);
+    s.addColorStop(1,"rgba(120,90,40,0)");
+    g.fillStyle=s;
+    g.beginPath(); g.arc(x,y,r,0,TAU); g.fill();
+  }
+  // fiber speckle
+  for(let i=0;i<1600;i++){
+    g.fillStyle=`rgba(90,70,40,${rand(.02,.06)})`;
+    g.fillRect(rand(W),rand(H),rand(.6,1.6),rand(.6,1.6));
+  }
+  // faint catalog stars
+  for(let i=0;i<170;i++){
+    g.fillStyle=`rgba(70,55,30,${rand(.06,.16)})`;
+    const x=rand(30,W-30),y=rand(30,H-60);
+    g.beginPath(); g.arc(x,y,rand(.4,1),0,TAU); g.fill();
+  }
+  // orbit furniture
+  g.strokeStyle="rgba(110,86,50,.16)";
+  g.lineWidth=1;
+  g.setLineDash([2,5]);
+  for(const f of [.5,.78,1.04]){
+    g.beginPath(); g.arc(CX,CY,RMAX*f,0,TAU); g.stroke();
+  }
+  g.beginPath();
+  g.moveTo(CX-RMAX*1.25,CY+RMAX*.42);
+  g.lineTo(CX+RMAX*1.25,CY-RMAX*.42);
+  g.stroke();
+  g.setLineDash([]);
+  // plate frame: double rule
+  const M=16;
+  g.strokeStyle="rgba(95,74,42,.75)";
+  g.lineWidth=2.2;
+  g.strokeRect(M,M,W-2*M,H-2*M);
+  g.strokeStyle="rgba(95,74,42,.45)";
+  g.lineWidth=.8;
+  g.strokeRect(M+5,M+5,W-2*M-10,H-2*M-10);
+  // graduation ticks (inner frame)
+  g.strokeStyle="rgba(95,74,42,.5)";
+  g.lineWidth=.8;
+  g.beginPath();
+  for(let x=M+5;x<W-M-5;x+=12){
+    const L=((x-M-5)%60<1)?8:4;
+    g.moveTo(x,M+5); g.lineTo(x,M+5+L);
+    g.moveTo(x,H-M-5); g.lineTo(x,H-M-5-L);
+  }
+  for(let y=M+5;y<H-M-5;y+=12){
+    const L=((y-M-5)%60<1)?8:4;
+    g.moveTo(M+5,y); g.lineTo(M+5+L,y);
+    g.moveTo(W-M-5,y); g.lineTo(W-M-5-L,y);
+  }
+  g.stroke();
+  // cartouche box
+  const cw=Math.min(W*.86,560), ch=66, cx0=CX-cw/2, cy0=12;
+  g.fillStyle="rgba(240,230,207,.88)";
+  g.fillRect(cx0,cy0,cw,ch);
+  g.strokeStyle="rgba(95,74,42,.7)";
+  g.lineWidth=1.6; g.strokeRect(cx0,cy0,cw,ch);
+  g.lineWidth=.7;  g.strokeRect(cx0+4,cy0+4,cw-8,ch-8);
+  // compass rose (bottom-left)
+  const rx=58, ry=H-92, rr=24;
+  g.save();
+  g.translate(rx,ry);
+  g.strokeStyle="rgba(110,86,50,.5)";
+  g.fillStyle="rgba(110,86,50,.5)";
+  g.lineWidth=.9;
+  g.beginPath(); g.arc(0,0,rr,0,TAU); g.stroke();
+  g.beginPath(); g.arc(0,0,rr*.62,0,TAU); g.stroke();
+  for(let k=0;k<8;k++){
+    const a=k*TAU/8, L=k%2?rr*.62:rr;
+    g.beginPath(); g.moveTo(0,0);
+    g.lineTo(Math.cos(a)*L,Math.sin(a)*L); g.stroke();
+  }
+  g.font="9px Georgia,serif";
+  g.textAlign="center"; g.textBaseline="middle";
+  g.fillText("N",0,-rr-8);
+  g.restore();
+}
+
+/* ================= audio (music box / engraving room) ================= */
+const AudioFX={
+  ctx:null,master:null,nbuf:null,on:true,last:{},
+  init(){
+    if(this.ctx) return;
+    try{
+      this.ctx=new (window.AudioContext||window.webkitAudioContext)();
+      this.master=this.ctx.createGain();
+      this.master.gain.value=.55;
+      this.master.connect(this.ctx.destination);
+      const len=this.ctx.sampleRate;
+      this.nbuf=this.ctx.createBuffer(1,len,this.ctx.sampleRate);
+      const d=this.nbuf.getChannelData(0);
+      for(let i=0;i<len;i++) d[i]=Math.random()*2-1;
+    }catch(e){}
+  },
+  resume(){ if(this.ctx&&this.ctx.state==="suspended") this.ctx.resume(); },
+  ok(t,gap){
+    if(!this.ctx||!this.on) return false;
+    const n=performance.now();
+    if(n-(this.last[t]||0)<gap) return false;
+    this.last[t]=n; return true;
+  },
+  pluckAt(f,vol,when){
+    const c=this.ctx,t=c.currentTime+when;
+    const o=c.createOscillator(),o2=c.createOscillator(),g=c.createGain(),fl=c.createBiquadFilter();
+    o.type="triangle"; o.frequency.value=f;
+    o2.type="sine"; o2.frequency.value=f*2.01;
+    fl.type="lowpass"; fl.frequency.value=2100;
+    g.gain.setValueAtTime(vol,t);
+    g.gain.exponentialRampToValueAtTime(.0001,t+.5);
+    o.connect(fl); o2.connect(fl); fl.connect(g); g.connect(this.master);
+    o.start(t); o2.start(t);
+    o.stop(t+.55); o2.stop(t+.55);
+  },
+  pluck(f){ if(!this.ok("pl",70))return; this.pluckAt(f,.07,0); },
+  chime(){ if(!this.ok("ch",400))return; this.pluckAt(880,.05,0); this.pluckAt(1318,.04,.13); },
+  nova(){
+    if(!this.ok("nv",120))return;
+    const c=this.ctx,t=c.currentTime;
+    const o=c.createOscillator(),g=c.createGain();
+    o.type="sine";
+    o.frequency.setValueAtTime(76,t);
+    o.frequency.exponentialRampToValueAtTime(36,t+.45);
+    g.gain.setValueAtTime(.3,t);
+    g.gain.exponentialRampToValueAtTime(.0001,t+.5);
+    o.connect(g); g.connect(this.master);
+    o.start(t); o.stop(t+.55);
+    const s=c.createBufferSource(); s.buffer=this.nbuf; s.loop=true;
+    const fl=c.createBiquadFilter(); fl.type="lowpass"; fl.frequency.value=300;
+    const g2=c.createGain();
+    g2.gain.setValueAtTime(.2,t);
+    g2.gain.exponentialRampToValueAtTime(.0001,t+.4);
+    s.connect(fl); fl.connect(g2); g2.connect(this.master);
+    s.start(t); s.stop(t+.45);
+  },
+  quill(){
+    if(!this.ok("qu",160))return;
+    const c=this.ctx,t=c.currentTime;
+    const s=c.createBufferSource(); s.buffer=this.nbuf; s.loop=true;
+    const fl=c.createBiquadFilter(); fl.type="highpass"; fl.frequency.value=1500;
+    const g=c.createGain();
+    g.gain.setValueAtTime(.022,t);
+    g.gain.exponentialRampToValueAtTime(.0001,t+.07);
+    s.connect(fl); fl.connect(g); g.connect(this.master);
+    s.start(t); s.stop(t+.08);
+  }
+};
+
+/* ================= particles (typed arrays) ================= */
+const NMAX=26000;
+const px=new Float32Array(NMAX), py=new Float32Array(NMAX);
+const pvx=new Float32Array(NMAX), pvy=new Float32Array(NMAX);
+const ptx=new Float32Array(NMAX), pty=new Float32Array(NMAX);
+const pr=new Float32Array(NMAX), pth=new Float32Array(NMAX), pom=new Float32Array(NMAX);
+const pph=new Float32Array(NMAX), psh=new Uint8Array(NMAX);
+let N=0, NBIG=0;
+const bigSize=new Float32Array(220);
+
+const TILT=-.34, ECC=.6;
+const cosT=Math.cos(TILT), sinT=Math.sin(TILT);
+
+function allocParticles(){
+  N=clamp(Math.floor(W*H/52),8000,NMAX);
+  NBIG=Math.min(180,Math.floor(N*.008));
+  for(let i=0;i<N;i++){
+    // orbit params: dense core + two arms
+    const core=Math.random()<.16;
+    const rr=core?Math.pow(Math.random(),1.7)*RMAX*.22
+                 :Math.sqrt(Math.random())*RMAX;
+    pr[i]=rr;
+    const arm=(i%2)*Math.PI;
+    pth[i]=arm + rr*.014 + rand(-.42,.42)/(0.25+rr/RMAX);
+    pom[i]=(.38*Math.pow(RMAX/(rr+26),.85))*rand(.85,1.15);
+    pph[i]=rand(TAU);
+    psh[i]=Math.random()<.18?2:(Math.random()<.5?1:0);
+    px[i]=rand(W); py[i]=rand(H);
+    pvx[i]=0; pvy[i]=0;
+    if(i<NBIG) bigSize[i]=rand(2.2,4.6);
+  }
+}
+function spiralTarget(i,out){
+  const th=pth[i], rr=pr[i];
+  const ux=Math.cos(th), uy=Math.sin(th)*ECC;
+  out.x=CX+(ux*cosT-uy*sinT)*rr;
+  out.y=CY+(ux*sinT+uy*cosT)*rr;
+}
+
+/* ================= shape sampling ================= */
+function samplePoints(drawFn){
+  const c=document.createElement("canvas");
+  c.width=W; c.height=H;
+  const g=c.getContext("2d");
+  drawFn(g);
+  let img;
+  try{ img=g.getImageData(0,0,W,H).data; }catch(e){ return []; }
+  const pts=[];
+  for(let y=0;y<H;y+=2){
+    const row=y*W;
+    for(let x=0;x<W;x+=2){
+      if(img[(row+x)*4+3]>110) pts.push(x,y);
+    }
+  }
+  return pts;
+}
+const SHAPES={
+  star(g){
+    const S=Math.min(W,H), R=S*.33, s=R*.15;
+    g.translate(CX,CY);
+    g.fillStyle="#000";
+    const spike=(rot,RR,ss)=>{
+      g.save(); g.rotate(rot);
+      g.beginPath();
+      g.moveTo(0,-RR);
+      g.quadraticCurveTo(ss,-ss,RR,0);
+      g.quadraticCurveTo(ss,ss,0,RR);
+      g.quadraticCurveTo(-ss,ss,-RR,0);
+      g.quadraticCurveTo(-ss,-ss,0,-RR);
+      g.fill(); g.restore();
+    };
+    spike(0,R,s);
+    spike(Math.PI/4,R*.5,s*.5);
+  },
+  luna(g){
+    const S=Math.min(W,H), R=S*.3;
+    g.fillStyle="#000";
+    g.beginPath(); g.arc(CX,CY,R,0,TAU); g.fill();
+    g.globalCompositeOperation="destination-out";
+    g.beginPath(); g.arc(CX+R*.46,CY-R*.1,R*.94,0,TAU); g.fill();
+  },
+  cometa(g){
+    const S=Math.min(W,H);
+    g.fillStyle="#000";
+    const hx=W*.34,hy=H*.4, ex=W*.72,ey=H*.62, mx=W*.46,my=H*.36;
+    for(let k=0;k<=46;k++){
+      const t=k/46;
+      const x=lerp(lerp(hx,mx,t),lerp(mx,ex,t),t);
+      const y=lerp(lerp(hy,my,t),lerp(my,ey,t),t);
+      const r=S*.062*Math.pow(1-t,1.35)+1.2;
+      g.beginPath(); g.arc(x,y,r,0,TAU); g.fill();
+    }
+  },
+  astra(g){
+    const fs=Math.min(Math.min(W,H)*.3,W*.19);
+    g.fillStyle="#000";
+    g.font=`900 ${fs}px Georgia,'Times New Roman',serif`;
+    g.textAlign="center"; g.textBaseline="middle";
+    g.fillText("ASTRA",CX,CY);
+  },
+  fable(g){
+    const fs=Math.min(Math.min(W,H)*.3,W*.19);
+    g.fillStyle="#000";
+    g.font=`900 ${fs}px Georgia,'Times New Roman',serif`;
+    g.textAlign="center"; g.textBaseline="middle";
+    g.fillText("FABLE",CX,CY);
+  }
+};
+function assignTargets(pts){
+  if(!pts.length) return false;
+  const m=pts.length/2;
+  for(let i=0;i<N;i++){
+    const j=(i*7919+13)%m;
+    ptx[i]=pts[2*j]+rand(-1.2,1.2);
+    pty[i]=pts[2*j+1]+rand(-1.2,1.2);
+  }
+  return true;
+}
+
+/* ================= state ================= */
+let mode="spiral", simT=0, ts=1, sloTimer=0, slowOn=false;
+const ptr={x:-99,y:-99,down:false,lx:0,ly:0,in:false,moved:0};
+let strokes=[];
+const ringsFx=[];
+let settled=false, settleT=0, lowT=0;
+const sout={x:0,y:0};
+
+const MODE_LABEL={spiral:"SPIRALIS · 渦",star:"STELLA · 星",luna:"LUNA · 月",
+  cometa:"COMETA · 彗星",astra:"ASTRA · 銘",fable:"FABLE · 藏",free:"DISPERSIO · 散"};
+const MODE_NOTE={spiral:220,star:277.18,luna:329.63,cometa:392,astra:440,fable:554.37,free:293.66};
+const MODE_TOAST={spiral:"渦狀銀河 ─ galaxia spiralis",star:"星辰ノ章 ─ stella magna",
+  luna:"月相ノ圖 ─ luna crescens",cometa:"彗星來ル ─ cometa appropinquat",
+  astra:"銘 ─ ASTRA",fable:"藏書印 ─ ex libris FABLE",free:"星々、散ジテ自由ヲ得タリ"};
+
+function setMode(m,silent){
+  mode=m; settled=false; settleT=0;
+  if(m==="free"){
+    for(let i=0;i<N;i++){ pvx[i]+=rand(-50,50); pvy[i]+=rand(-50,50); }
+  }else if(m!=="spiral"){
+    const pts=samplePoints(SHAPES[m]);
+    if(!assignTargets(pts)) mode="free";
+  }
+  $("modev").textContent=MODE_LABEL[mode];
+  document.querySelectorAll(".lg[data-m]").forEach(b=>b.classList.toggle("on",b.dataset.m===mode));
+  if(!silent){
+    toast(MODE_TOAST[mode]);
+    AudioFX.init(); AudioFX.pluck(MODE_NOTE[mode]||330);
+  }
+}
+
+/* ================= simulation ================= */
+function step(dt){
+  simT+=dt;
+  if(mode==="spiral"){
+    const k=10, c=3.8;
+    for(let i=0;i<N;i++){
+      pth[i]+=pom[i]*dt;
+      spiralTarget(i,sout);
+      pvx[i]+=((sout.x-px[i])*k - pvx[i]*c)*dt;
+      pvy[i]+=((sout.y-py[i])*k - pvy[i]*c)*dt;
+      px[i]+=pvx[i]*dt; py[i]+=pvy[i]*dt;
+    }
+  }else if(mode==="free"){
+    const dmp=1-.4*dt;
+    for(let i=0;i<N;i++){
+      pvx[i]=pvx[i]*dmp + Math.sin(py[i]*.008+simT*.5+pph[i])*26*dt;
+      pvy[i]=pvy[i]*dmp + Math.cos(px[i]*.007-simT*.4+pph[i])*26*dt;
+      px[i]+=pvx[i]*dt; py[i]+=pvy[i]*dt;
+    }
+  }else{
+    const k=26, c=6.8;
+    for(let i=0;i<N;i++){
+      const bx=Math.sin(simT*1.4+pph[i])*1.3;
+      const by=Math.cos(simT*1.1+pph[i])*1.3;
+      pvx[i]+=((ptx[i]+bx-px[i])*k - pvx[i]*c)*dt;
+      pvy[i]+=((pty[i]+by-py[i])*k - pvy[i]*c)*dt;
+      px[i]+=pvx[i]*dt; py[i]+=pvy[i]*dt;
+    }
+  }
+  // stroke forces (gravity of the quill)
+  if(strokes.length){
+    const SR=74, SR2=SR*SR;
+    for(const s of strokes){
+      const dx=s.x2-s.x1, dy=s.y2-s.y1;
+      const L=Math.hypot(dx,dy)||1e-6;
+      const ux=dx/L, uy=dy/L;
+      const A=clamp(L*7,26,210);
+      const minx=Math.min(s.x1,s.x2)-SR, maxx=Math.max(s.x1,s.x2)+SR;
+      const miny=Math.min(s.y1,s.y2)-SR, maxy=Math.max(s.y1,s.y2)+SR;
+      for(let i=0;i<N;i++){
+        const x=px[i], y=py[i];
+        if(x<minx||x>maxx||y<miny||y>maxy) continue;
+        let t=((x-s.x1)*dx+(y-s.y1)*dy)/(L*L);
+        t=t<0?0:t>1?1:t;
+        const ddx=x-(s.x1+dx*t), ddy=y-(s.y1+dy*t);
+        const d2=ddx*ddx+ddy*ddy;
+        if(d2>=SR2) continue;
+        const w=1-Math.sqrt(d2)/SR;
+        const side=(ux*ddy-uy*ddx)>0?1:-1;
+        pvx[i]+=(ux*A - uy*side*A*.42)*w;
+        pvy[i]+=(uy*A + ux*side*A*.42)*w;
+      }
+    }
+    strokes.length=0;
+  }
+  // soft plate bounds
+  const MB=34, BB=H-62;
+  for(let i=0;i<N;i++){
+    if(px[i]<MB) pvx[i]+=(MB-px[i])*7*dt;
+    else if(px[i]>W-MB) pvx[i]-=(px[i]-(W-MB))*7*dt;
+    if(py[i]<MB+62) pvy[i]+=(MB+62-py[i])*7*dt;
+    else if(py[i]>BB) pvy[i]-=(py[i]-BB)*7*dt;
+    px[i]=clamp(px[i],4,W-4); py[i]=clamp(py[i],4,H-4);
+  }
+  // settle chime for figures
+  if(mode!=="spiral"&&mode!=="free"&&!settled){
+    settleT+=dt;
+    if(settleT>.4){
+      settleT=0;
+      let s=0, m=Math.min(240,N);
+      for(let j=0;j<m;j++){
+        const i=(j*977)%N;
+        s+=Math.abs(px[i]-ptx[i])+Math.abs(py[i]-pty[i]);
+      }
+      if(s/m<4.6){ settled=true; AudioFX.chime(); toast("結 バレタリ ─ figura constituta"); }
+    }
+  }
+}
+
+function nova(x,y){
+  const R=240, R2=R*R;
+  for(let i=0;i<N;i++){
+    const dx=px[i]-x, dy=py[i]-y;
+    const d2=dx*dx+dy*dy;
+    if(d2>=R2) continue;
+    const d=Math.max(.6,Math.sqrt(d2));
+    const w=1-d/R;
+    const imp=560*w*w;
+    const ux=dx/d, uy=dy/d;
+    pvx[i]+=ux*imp - uy*imp*.18;
+    pvy[i]+=uy*imp + ux*imp*.18;
+  }
+  ringsFx.push({x,y,t:0,life:.9});
+  sloTimer=.28;
+  AudioFX.nova();
+  // engraved splat on the plate
+  trCtx.strokeStyle="rgba(59,47,31,.14)";
+  trCtx.lineWidth=1;
+  trCtx.beginPath();
+  for(let k=0;k<18;k++){
+    const a=rand(TAU), r0=rand(14,26), r1=r0+rand(8,42);
+    trCtx.moveTo(x+Math.cos(a)*r0, y+Math.sin(a)*r0);
+    trCtx.lineTo(x+Math.cos(a)*r1, y+Math.sin(a)*r1);
+  }
+  trCtx.stroke();
+  trCtx.beginPath(); trCtx.arc(x,y,26,0,TAU); trCtx.stroke();
+  trCtx.beginPath(); trCtx.arc(x,y,33,0,TAU); trCtx.stroke();
+}
+
+/* ================= pointer ================= */
+let hintHidden=false;
+function hideHint(){
+  if(hintHidden) return; hintHidden=true;
+  $("hint").classList.add("off");
+  setTimeout(()=>{ $("hint").style.display="none"; },900);
+}
+function evPos(e){
+  const r=cv.getBoundingClientRect();
+  return [e.clientX-r.left, e.clientY-r.top];
+}
+cv.addEventListener("pointerdown",e=>{
+  e.preventDefault();
+  AudioFX.init(); AudioFX.resume();
+  hideHint();
+  const [x,y]=evPos(e);
+  ptr.down=true; ptr.moved=0;
+  ptr.x=ptr.lx=x; ptr.y=ptr.ly=y; ptr.in=true;
+  try{ cv.setPointerCapture(e.pointerId); }catch(err){}
+});
+cv.addEventListener("pointermove",e=>{
+  const [x,y]=evPos(e);
+  ptr.x=x; ptr.y=y; ptr.in=true;
+  if(ptr.down){
+    const d=Math.hypot(x-ptr.lx,y-ptr.ly);
+    ptr.moved+=d;
+    if(d>.5){
+      if(strokes.length<5) strokes.push({x1:ptr.lx,y1:ptr.ly,x2:x,y2:y});
+      // ink wash on plate
+      trCtx.strokeStyle="rgba(59,47,31,.05)";
+      trCtx.lineWidth=22; trCtx.lineCap="round";
+      trCtx.beginPath(); trCtx.moveTo(ptr.lx,ptr.ly); trCtx.lineTo(x,y); trCtx.stroke();
+      trCtx.strokeStyle="rgba(59,47,31,.1)";
+      trCtx.lineWidth=5;
+      trCtx.beginPath(); trCtx.moveTo(ptr.lx,ptr.ly); trCtx.lineTo(x,y); trCtx.stroke();
+      AudioFX.quill();
+    }
+  }
+  ptr.lx=x; ptr.ly=y;
+});
+function release(){
+  if(!ptr.down) return;
+  ptr.down=false;
+  if(ptr.moved<8) nova(ptr.x,ptr.y);
+}
+cv.addEventListener("pointerup",release);
+cv.addEventListener("pointercancel",release);
+cv.addEventListener("pointerleave",()=>{ ptr.in=false; });
+addEventListener("blur",release);
+cv.addEventListener("contextmenu",e=>e.preventDefault());
+
+/* ================= UI ================= */
+function toast(msg){
+  const el=$("toast"); el.textContent=msg;
+  el.classList.add("show");
+  clearTimeout(toast._t);
+  toast._t=setTimeout(()=>el.classList.remove("show"),1900);
+}
+document.querySelectorAll(".lg[data-m]").forEach(b=>{
+  b.addEventListener("click",()=>setMode(b.dataset.m));
+});
+$("b-slow").onclick=function(){
+  slowOn=!slowOn;
+  this.classList.toggle("on",slowOn);
+  toast(slowOn?"緩 ─ tempus lentum":"常 ─ tempus solitum");
+  AudioFX.init(); AudioFX.pluck(196);
+};
+$("b-snd").onclick=function(){
+  AudioFX.init(); AudioFX.on=!AudioFX.on;
+  this.classList.toggle("on",AudioFX.on);
+  toast(AudioFX.on?"音 ─ sonus":"黙 ─ silentium");
+};
+$("b-reset").onclick=()=>{
+  allocParticles();
+  trCtx.clearRect(0,0,W,H);
+  setMode("spiral",true);
+  toast("払 ─ restitutio");
+  AudioFX.init(); AudioFX.pluck(220);
+};
+$("seal").onclick=()=>{ hideHint(); setMode("fable"); };
+addEventListener("keydown",e=>{
+  const km={"1":"spiral","2":"star","3":"luna","4":"cometa","5":"astra","6":"free"};
+  if(km[e.key]) setMode(km[e.key]);
+  else if(e.key==="s"||e.key==="S") $("b-slow").click();
+  else if(e.key==="r"||e.key==="R") $("b-reset").click();
+});
+addEventListener("resize",()=>{
+  resize();
+  allocParticles();
+  if(mode!=="spiral"&&mode!=="free") setMode(mode,true);
+});
+
+/* ================= render ================= */
+const SHADES=["rgba(59,47,31,.4)","rgba(59,47,31,.6)","rgba(43,33,20,.85)"];
+function render(rdt){
+  const pdt=rdt*ts;
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  ctx.drawImage(bgCv,0,0,W,H);
+  // fade & draw ink wash layer
+  trCtx.globalCompositeOperation="destination-out";
+  trCtx.fillStyle="rgba(0,0,0,.04)";
+  trCtx.fillRect(0,0,W,H);
+  trCtx.globalCompositeOperation="source-over";
+  ctx.drawImage(trCv,0,0,W,H);
+  // stipple stars
+  for(let b=0;b<3;b++){
+    ctx.fillStyle=SHADES[b];
+    const sz=b===2?1.9:1.5;
+    for(let i=NBIG;i<N;i++){
+      if(psh[i]!==b) continue;
+      ctx.fillRect(px[i],py[i],sz,sz);
+    }
+  }
+  // engraved bright stars (cross spikes)
+  ctx.strokeStyle="rgba(43,33,20,.75)";
+  ctx.lineWidth=.9;
+  ctx.beginPath();
+  for(let i=0;i<NBIG;i++){
+    const s=bigSize[i], x=px[i], y=py[i];
+    ctx.moveTo(x-s*2,y); ctx.lineTo(x+s*2,y);
+    ctx.moveTo(x,y-s*2); ctx.lineTo(x,y+s*2);
+  }
+  ctx.stroke();
+  ctx.fillStyle="rgba(43,33,20,.85)";
+  for(let i=0;i<NBIG;i++){
+    ctx.beginPath();
+    ctx.arc(px[i],py[i],bigSize[i]*.55,0,TAU);
+    ctx.fill();
+  }
+  // nova rings (engraved)
+  for(let i=ringsFx.length-1;i>=0;i--){
+    const r=ringsFx[i];
+    r.t+=pdt;
+    if(r.t>r.life){ ringsFx.splice(i,1); continue; }
+    const t=r.t/r.life;
+    const rr=lerp(14,180,1-Math.pow(1-t,3));
+    const a=(1-t)*.55;
+    ctx.strokeStyle=`rgba(95,74,42,${a})`;
+    ctx.lineWidth=1.2;
+    ctx.beginPath(); ctx.arc(r.x,r.y,rr,0,TAU); ctx.stroke();
+    ctx.beginPath(); ctx.arc(r.x,r.y,Math.max(2,rr-8),0,TAU); ctx.stroke();
+    ctx.beginPath();
+    for(let k=0;k<16;k++){
+      const ang=k/16*TAU;
+      ctx.moveTo(r.x+Math.cos(ang)*(rr+2), r.y+Math.sin(ang)*(rr+2));
+      ctx.lineTo(r.x+Math.cos(ang)*(rr+9), r.y+Math.sin(ang)*(rr+9));
+    }
+    ctx.stroke();
+  }
+  // telescope reticle cursor
+  if(ptr.in){
+    ctx.strokeStyle="rgba(138,109,59,.85)";
+    ctx.lineWidth=1;
+    ctx.beginPath(); ctx.arc(ptr.x,ptr.y,10,0,TAU); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(ptr.x-16,ptr.y); ctx.lineTo(ptr.x-6,ptr.y);
+    ctx.moveTo(ptr.x+6,ptr.y);  ctx.lineTo(ptr.x+16,ptr.y);
+    ctx.moveTo(ptr.x,ptr.y-16); ctx.lineTo(ptr.x,ptr.y-6);
+    ctx.moveTo(ptr.x,ptr.y+6);  ctx.lineTo(ptr.x,ptr.y+16);
+    ctx.stroke();
+    ctx.fillStyle="rgba(139,47,28,.9)";
+    ctx.fillRect(ptr.x-.75,ptr.y-.75,1.5,1.5);
+  }
+  // slow-time label
+  if(ts<.6){
+    ctx.fillStyle=`rgba(90,74,51,${(1-ts)*.9})`;
+    ctx.font="italic 12px Georgia,serif";
+    ctx.textAlign="center";
+    ctx.fillText("tempus lentum ─ 緩", CX, H-72);
+  }
+}
+
+/* ================= main loop ================= */
+let last=performance.now(), acc=0, fpsE=60, statT=0;
+const DT=1/60;
+function frame(now){
+  requestAnimationFrame(frame);
+  let rdt=(now-last)/1000; last=now;
+  if(rdt>.05) rdt=.05;
+  fpsE=lerp(fpsE,1/Math.max(rdt,1e-4),.04);
+  if(sloTimer>0) sloTimer-=rdt;
+  const target=slowOn?.22:(sloTimer>0?.3:1);
+  ts=lerp(ts,target,.13);
+  acc+=rdt*ts;
+  let n=0;
+  while(acc>=DT&&n<3){ step(DT); acc-=DT; n++; }
+  if(acc>DT) acc=0;
+  render(rdt);
+  statT+=rdt;
+  if(statT>.25){
+    statT=0;
+    $("fpsv").textContent=Math.round(fpsE);
+    $("cnt").textContent=N.toLocaleString("en-US");
+    // adaptive stipple density
+    if(fpsE<42){ lowT+=.25; }else lowT=0;
+    if(lowT>=2){
+      lowT=0;
+      N=Math.max(7000,(N*.85)|0);
+      toast("星數ヲ間引ク ─ stellæ reductæ");
+    }
+  }
+}
+resize();
+allocParticles();
+setMode("spiral",true);
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
