@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>fable-test</title>
+<meta name="description" content="Claude Fable で何が作れるかを試した実験のアーカイブ">
+<meta property="og:title" content="fable-test">
+<meta property="og:description" content="Claude Fable で何が作れるかを試した実験のアーカイブ">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Old+Mincho:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --teal:#62B8A0;
+    --teal-deep:#4F7C87;
+    --coral:#EB6584;
+    --ink:#2C3A3A;
+    --ink-soft:#5C6B6B;
+    --paper:#FAF8F4;
+    --paper-warm:#F2EEE6;
+    --line:#E2DDD3;
+    --card:#FFFFFF;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:"Zen Kaku Gothic New",system-ui,sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  ::selection{background:var(--coral);color:#fff}
+
+  /* ---- ambient grid ---- */
+  .grain{
+    position:fixed;inset:0;z-index:0;pointer-events:none;
+    background-image:
+      linear-gradient(var(--line) 1px,transparent 1px),
+      linear-gradient(90deg,var(--line) 1px,transparent 1px);
+    background-size:64px 64px;
+    opacity:.4;
+    mask-image:radial-gradient(circle at 50% 30%,#000 0%,transparent 75%);
+    -webkit-mask-image:radial-gradient(circle at 50% 30%,#000 0%,transparent 75%);
+  }
+
+  .wrap{position:relative;z-index:1;max-width:880px;margin:0 auto;padding:0 28px}
+
+  /* ---- header ---- */
+  header{padding:96px 0 56px}
+  .eyebrow{
+    font-family:"Space Grotesk",sans-serif;
+    font-size:.72rem;letter-spacing:.28em;text-transform:uppercase;
+    color:var(--teal-deep);
+    display:flex;align-items:center;gap:12px;
+    margin-bottom:28px;
+  }
+  .eyebrow::before{
+    content:"";width:34px;height:1px;background:var(--teal);display:inline-block;
+  }
+  h1{
+    font-family:"Zen Old Mincho",serif;
+    font-weight:700;
+    font-size:clamp(3rem,11vw,5.2rem);
+    line-height:.98;
+    letter-spacing:-.01em;
+    margin-bottom:26px;
+  }
+  h1 .dot{color:var(--coral)}
+  .lead{
+    font-size:1.02rem;
+    color:var(--ink-soft);
+    max-width:34em;
+  }
+  .meta{
+    margin-top:32px;
+    display:flex;gap:28px;flex-wrap:wrap;
+    font-family:"Space Grotesk",sans-serif;
+    font-size:.8rem;letter-spacing:.04em;
+    color:var(--ink-soft);
+  }
+  .meta b{color:var(--ink);font-weight:600}
+
+  /* ---- list ---- */
+  .specimens{padding:8px 0 96px;border-top:1px solid var(--line)}
+  .specimen:last-child{border-bottom:none}
+  .specimen{
+    display:grid;
+    grid-template-columns:64px 1fr auto;
+    align-items:center;
+    gap:20px;
+    padding:30px 12px;
+    border-bottom:1px solid var(--line);
+    text-decoration:none;
+    color:inherit;
+    position:relative;
+    transition:background .35s ease,padding .35s ease;
+  }
+  .specimen::before{
+    content:"";position:absolute;left:0;top:0;bottom:0;width:0;
+    background:linear-gradient(180deg,var(--teal),var(--teal-deep));
+    transition:width .35s ease;
+  }
+  .specimen:hover{
+    background:var(--card);
+    padding-left:24px;
+  }
+  .specimen:hover::before{width:3px}
+  .idx{
+    font-family:"Space Grotesk",sans-serif;
+    font-size:.78rem;letter-spacing:.1em;
+    color:var(--teal-deep);
+    font-weight:600;
+  }
+  .body h2{
+    font-family:"Zen Old Mincho",serif;
+    font-weight:500;
+    font-size:1.45rem;
+    letter-spacing:.01em;
+    margin-bottom:5px;
+    transition:color .3s ease;
+  }
+  .specimen:hover .body h2{color:var(--teal-deep)}
+  .slug{
+    font-family:"Space Grotesk",sans-serif;
+    font-size:.74rem;letter-spacing:.06em;
+    color:var(--ink-soft);
+    margin-bottom:8px;
+  }
+  .desc{font-size:.92rem;color:var(--ink-soft);max-width:40em}
+  .go{
+    width:42px;height:42px;border-radius:50%;
+    border:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;
+    color:var(--teal-deep);
+    flex-shrink:0;
+    transition:all .35s ease;
+  }
+  .specimen:hover .go{
+    background:var(--coral);border-color:var(--coral);color:#fff;
+    transform:rotate(-45deg);
+  }
+  .go svg{width:17px;height:17px}
+
+  /* ---- footer ---- */
+  footer{
+    padding:40px 0 64px;
+    border-top:1px solid var(--line);
+    display:flex;justify-content:space-between;align-items:center;
+    flex-wrap:wrap;gap:16px;
+    font-family:"Space Grotesk",sans-serif;
+    font-size:.76rem;letter-spacing:.04em;
+    color:var(--ink-soft);
+  }
+  .motto{color:var(--teal-deep);font-weight:500}
+
+  /* ---- entrance ---- */
+  @keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+  .anim{opacity:0;animation:rise .7s cubic-bezier(.2,.7,.2,1) forwards}
+  .d1{animation-delay:.05s}.d2{animation-delay:.13s}.d3{animation-delay:.21s}
+  .d4{animation-delay:.29s}.d5{animation-delay:.37s}.d6{animation-delay:.45s}
+  .d7{animation-delay:.53s}
+
+  @media (max-width:560px){
+    header{padding:64px 0 40px}
+    .specimen{grid-template-columns:40px 1fr;gap:14px;padding:24px 4px}
+    .specimen:hover{padding-left:10px}
+    .go{display:none}
+    .desc{font-size:.88rem}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .anim{animation:none;opacity:1}
+    html{scroll-behavior:auto}
+    .specimen,.go,.body h2{transition:none}
+  }
+</style>
+</head>
+<body>
+<div class="grain"></div>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow anim d1">Experiments with Claude Fable</div>
+    <h1 class="anim d2">fable<span class="dot">-</span>test</h1>
+    <p class="lead anim d3">Claude の Fable で、どんな読み物が・どこまで作れるのか。手を動かして確かめた実験を、ひとつずつ標本のように並べています。</p>
+    <div class="meta anim d4">
+      <span><b>4</b> experiments</span>
+      <span><b>HTML</b> single-file</span>
+      <span>hosted on <b>Vercel</b></span>
+    </div>
+  </header>
+
+  <main class="specimens">
+
+    <a class="specimen anim d4" href="./physics-lab/">
+      <span class="idx">01</span>
+      <div class="body">
+        <h2>Physics Lab</h2>
+        <div class="slug">/physics-lab</div>
+        <p class="desc">物理現象をテーマにした実験。動きやシミュレーションをどこまで表現できるかを試した一篇。</p>
+      </div>
+      <span class="go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+    </a>
+
+    <a class="specimen anim d5" href="./ink-lab/">
+      <span class="idx">02</span>
+      <div class="body">
+        <h2>Ink Lab</h2>
+        <div class="slug">/ink-lab</div>
+        <p class="desc">墨・線・筆致の表現実験。和の質感やインクの滲みをどう描けるかを探った一篇。</p>
+      </div>
+      <span class="go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+    </a>
+
+    <a class="specimen anim d6" href="./galaxy-atlas/">
+      <span class="idx">03</span>
+      <div class="body">
+        <h2>Galaxy Atlas</h2>
+        <div class="slug">/galaxy-atlas</div>
+        <p class="desc">宇宙・天体をテーマにした図譜的な実験。広がりと奥行きの表現を試した一篇。</p>
+      </div>
+      <span class="go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+    </a>
+
+    <a class="specimen anim d7" href="./ecosystem/">
+      <span class="idx">04</span>
+      <div class="body">
+        <h2>Ecosystem</h2>
+        <div class="slug">/ecosystem</div>
+        <p class="desc">生態系・自然をテーマにした実験。関係性や循環をどう読み物に落とすかを探った一篇。</p>
+      </div>
+      <span class="go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+    </a>
+
+  </main>
+
+</div>
+</body>
+</html>
